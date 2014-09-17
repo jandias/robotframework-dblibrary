@@ -8,12 +8,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
 
 import junit.framework.Assert;
 
@@ -34,6 +33,12 @@ public class DatabaseLibraryTest {
 	private static final String HSQL_URL = "jdbc:hsqldb:mem:xdb";
 	private static final String HSQL_USER = "sa";
 	private static final String HSQL_PASSWORD = "";
+	
+	private static final String FILENAME_SINGLESQL = "/sqlfiles/createTable.sql";
+	private static final String FILENAME_SINGLESQL_UNDO = "/sqlfiles/createTable_undo.sql";
+	private static final String FILENAME_MULTIPLESQL = "/sqlfiles/createAndFillTable.sql";
+	private static final String FILENAME_MULTIPLESQL_UNDO = "/sqlfiles/createAndFillTable_undo.sql";
+	private static final String FILENAME_INVALIDSQL = "/sqlfiles/invalid.sql";
 
 	private DatabaseLibrary databaseLibrary;
 	
@@ -393,6 +398,7 @@ public class DatabaseLibraryTest {
 	public void checkExecuteSQL() throws Exception {
 		databaseLibrary.executeSql("CREATE TABLE TestTable (Num Integer)");
 		databaseLibrary.tableMustExist("TESTTABLE");
+		databaseLibrary.executeSql("DROP TABLE TestTable");
 	}
 	
 	@Test
@@ -511,4 +517,30 @@ public class DatabaseLibraryTest {
 		}
 	}
 
+	//
+	// Execute SQL From File
+	//
+	@Test
+	public void singleSqlFromFile() throws Exception {
+		URL scriptFile = getClass().getResource(FILENAME_SINGLESQL);
+		URL undoScriptFile = getClass().getResource(FILENAME_SINGLESQL_UNDO);
+		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
+		databaseLibrary.tableMustExist("TESTTABLE");
+		databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
+	}
+	
+	@Test
+	public void multipleSqlFromFile() throws Exception {
+		URL scriptFile = getClass().getResource(FILENAME_MULTIPLESQL);
+		URL undoScriptFile = getClass().getResource(FILENAME_MULTIPLESQL_UNDO);
+		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
+		databaseLibrary.tableMustContainNumberOfRows("TESTTABLE", "2");
+		databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
+	}
+	
+	@Test(expected=SQLException.class)
+	public void invalidSqlFromFile() throws Exception {
+		URL scriptFile = getClass().getResource(FILENAME_INVALIDSQL);
+		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
+	}
 }

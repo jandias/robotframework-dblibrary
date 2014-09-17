@@ -18,9 +18,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.robotframework.javalib.annotation.ArgumentNames;
-import org.robotframework.javalib.annotation.RobotKeyword;
-import org.robotframework.javalib.annotation.RobotKeywords;
 
 /**
  * This library supports database-related testing using the Robot Framework. It
@@ -728,46 +725,46 @@ public class DatabaseLibrary {
 
 		getConnection().setAutoCommit(false);
 
-		FileReader fr = new FileReader(new File(fileName));
-		BufferedReader br = new BufferedReader(fr);
-
+		BufferedReader br = null;
 		String sql = "";
-		String line = "";
-		while ((line = br.readLine()) != null) {
-			line = line.trim();
+		try {
+			FileReader fr = new FileReader(new File(fileName));
+			br = new BufferedReader(fr);
 
-			// Ignore lines commented out in the given file
-			if (line.toLowerCase().startsWith("rem")) {
-				continue;
-			}
-			if (line.startsWith("#")) {
-				continue;
-			}
+			String line = "";
+			while ((line = br.readLine()) != null) {
+				line = line.trim();
 
-			// Add the line to the current SQL statement
-			sql += line;
-
-			// Check if SQL statement is complete, if yes execute
-			try {
-				if (sql.endsWith(";")) {
-					sql = sql.substring(0, sql.length() - 1);
-					System.out.println("Executing: " + sql);
-					executeSql(sql);
-					sql = "";
+				// Ignore lines commented out in the given file
+				if (line.toLowerCase().startsWith("rem")) {
+					continue;
 				}
-			} catch (SQLException e) {
-				sql = "";
-				br.close();
-				getConnection().rollback();
-				getConnection().setAutoCommit(true);
-				throw new DatabaseLibraryException("Error executing: " + sql
-						+ " Execution from file rolled back!");
-			}
-		}
+				if (line.startsWith("#")) {
+					continue;
+				}
 
-		getConnection().commit();
-		getConnection().setAutoCommit(true);
-		br.close();
+				sql += line;
+
+				if (!sql.endsWith(";")) {
+					continue;
+				}
+				
+				sql = sql.substring(0, sql.length() - 1);
+				System.out.println("Going to execute Sql: " + sql);
+				executeSql(sql);
+				sql = "";
+			}
+			getConnection().commit();
+		} catch (SQLException e) {
+			getConnection().rollback();
+			System.out.println("Error executing Sql: " + sql
+					+ " Execution from file rolled back!");
+			throw e;
+		}
+		finally {
+			getConnection().setAutoCommit(true);
+			if( br!=null ) br.close();
+		}
 	}
 
 	/**
