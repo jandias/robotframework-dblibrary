@@ -1,0 +1,3 @@
+CREATE TABLE TestTable (Num Integer);
+INSERT INTO TestTable VALUES(1);
+INSERT INTO TestTable VALUES(2);
