@@ -39,6 +39,8 @@ public class DatabaseLibraryTest {
 	private static final String FILENAME_MULTIPLESQL = "/sqlfiles/createAndFillTable.sql";
 	private static final String FILENAME_MULTIPLESQL_UNDO = "/sqlfiles/createAndFillTable_undo.sql";
 	private static final String FILENAME_INVALIDSQL = "/sqlfiles/invalid.sql";
+	private static final String FILENAME_COMMENTEDSQL = "/sqlfiles/commented.sql";
+	private static final String FILENAME_COMMENTEDSQL_UNDO = "/sqlfiles/commented_undo.sql";
 
 	private DatabaseLibrary databaseLibrary;
 	
@@ -524,23 +526,83 @@ public class DatabaseLibraryTest {
 	public void singleSqlFromFile() throws Exception {
 		URL scriptFile = getClass().getResource(FILENAME_SINGLESQL);
 		URL undoScriptFile = getClass().getResource(FILENAME_SINGLESQL_UNDO);
+		
 		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
-		databaseLibrary.tableMustExist("TESTTABLE");
-		databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
+
+		try { //assertions
+			databaseLibrary.tableMustExist("TESTTABLE");
+		}
+		finally { //cleanup
+			databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
+		}
 	}
 	
 	@Test
 	public void multipleSqlFromFile() throws Exception {
 		URL scriptFile = getClass().getResource(FILENAME_MULTIPLESQL);
 		URL undoScriptFile = getClass().getResource(FILENAME_MULTIPLESQL_UNDO);
+		
 		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
-		databaseLibrary.tableMustContainNumberOfRows("TESTTABLE", "2");
-		databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
+		
+		try { //assertions
+			databaseLibrary.tableMustContainNumberOfRows("TESTTABLE", "2");
+		}
+		finally { //cleanup
+			databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
+		}
 	}
 	
 	@Test(expected=SQLException.class)
 	public void invalidSqlFromFile() throws Exception {
 		URL scriptFile = getClass().getResource(FILENAME_INVALIDSQL);
 		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
+	}
+	
+	@Test
+	public void doubleHyphenCommentFromFile() throws Exception {
+		URL scriptFile = getClass().getResource(FILENAME_COMMENTEDSQL);
+		URL undoScriptFile = getClass().getResource(FILENAME_COMMENTEDSQL_UNDO);
+		
+		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
+
+		try { //assertions
+			databaseLibrary.verifyNumberOfRowsMatchingWhere("TestTable","description = 'doubleHyphen'","0");
+			databaseLibrary.verifyNumberOfRowsMatchingWhere("TestTable","description = 'nextToDoubleHyphen'","1");
+		}
+		finally { //cleanup
+			databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
+		}
+	}
+	
+	@Test
+	public void hashCommentFromFile() throws Exception {
+		URL scriptFile = getClass().getResource(FILENAME_COMMENTEDSQL);
+		URL undoScriptFile = getClass().getResource(FILENAME_COMMENTEDSQL_UNDO);
+		
+		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
+		
+		try { //assertions
+			databaseLibrary.verifyNumberOfRowsMatchingWhere("TestTable","description = 'hash'","0");
+			databaseLibrary.verifyNumberOfRowsMatchingWhere("TestTable","description = 'nextToHash'","1");
+		}
+		finally { //cleanup
+			databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
+		}
+	}
+	
+	@Test
+	public void remCommentFromFile() throws Exception {
+		URL scriptFile = getClass().getResource(FILENAME_COMMENTEDSQL);
+		URL undoScriptFile = getClass().getResource(FILENAME_COMMENTEDSQL_UNDO);
+		
+		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
+		
+		try { //assertions
+			databaseLibrary.verifyNumberOfRowsMatchingWhere("TestTable","description = 'rem'","0");
+			databaseLibrary.verifyNumberOfRowsMatchingWhere("TestTable","description = 'nextToRem'","1");
+		}
+		finally { //cleanup
+			databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
+		}
 	}
 }

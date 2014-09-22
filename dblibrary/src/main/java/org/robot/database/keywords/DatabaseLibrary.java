@@ -69,6 +69,8 @@ import java.util.Map;
  */
 public class DatabaseLibrary {
 	public static final String ROBOT_LIBRARY_SCOPE = "GLOBAL";
+	
+	public static final String[] SQLFILE_COMMENT_PREFIXES = { "rem", "#", "--" };
 
 	private Connection connection = null;
 
@@ -735,17 +737,13 @@ public class DatabaseLibrary {
 			while ((line = br.readLine()) != null) {
 				line = line.trim();
 
-				// Ignore lines commented out in the given file
-				if (line.toLowerCase().startsWith("rem")) {
-					continue;
-				}
-				if (line.startsWith("#")) {
+				if (isComment(line)) {
 					continue;
 				}
 
 				sql += line;
 
-				if (!sql.endsWith(";")) {
+				if (isThereMore(sql)) {
 					continue;
 				}
 				
@@ -765,6 +763,21 @@ public class DatabaseLibrary {
 			getConnection().setAutoCommit(true);
 			if( br!=null ) br.close();
 		}
+	}
+
+	private boolean isComment(String line) {
+		String loweredLine = line.toLowerCase();
+		
+		for( String prefix: SQLFILE_COMMENT_PREFIXES ) {
+			if (loweredLine.startsWith(prefix)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isThereMore(String sql) {
+		return !sql.endsWith(";");
 	}
 
 	/**
