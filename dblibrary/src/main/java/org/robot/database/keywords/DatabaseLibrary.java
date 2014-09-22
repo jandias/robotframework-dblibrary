@@ -70,7 +70,8 @@ import java.util.Map;
 public class DatabaseLibrary {
 	public static final String ROBOT_LIBRARY_SCOPE = "GLOBAL";
 	
-	public static final String[] SQLFILE_COMMENT_PREFIXES = { "rem", "#", "--" };
+	private static final String SQL_STATEMENT_SEPARATOR = " ";
+	private static final String[] SQLFILE_COMMENT_PREFIXES = { "rem", "#", "--" };
 
 	private Connection connection = null;
 
@@ -741,12 +742,16 @@ public class DatabaseLibrary {
 					continue;
 				}
 
+				if( !isFirstLine(sql) ) {
+					sql = addSeparator(sql);
+				}
+				
 				sql += line;
 
 				if (isThereMore(sql)) {
 					continue;
 				}
-				
+			
 				sql = sql.substring(0, sql.length() - 1);
 				System.out.println("Going to execute Sql: " + sql);
 				executeSql(sql);
@@ -763,6 +768,14 @@ public class DatabaseLibrary {
 			getConnection().setAutoCommit(true);
 			if( br!=null ) br.close();
 		}
+	}
+
+	private String addSeparator(String sql) {
+		return sql += SQL_STATEMENT_SEPARATOR;
+	}
+
+	private boolean isFirstLine(String sql) {
+		return sql == "";
 	}
 
 	private boolean isComment(String line) {

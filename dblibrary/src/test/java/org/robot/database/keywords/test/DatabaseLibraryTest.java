@@ -33,12 +33,14 @@ public class DatabaseLibraryTest {
 	private static final String HSQL_URL = "jdbc:hsqldb:mem:xdb";
 	private static final String HSQL_USER = "sa";
 	private static final String HSQL_PASSWORD = "";
-	
+
 	private static final String FILENAME_SINGLESQL = "/sqlfiles/createTable.sql";
 	private static final String FILENAME_SINGLESQL_UNDO = "/sqlfiles/createTable_undo.sql";
 	private static final String FILENAME_MULTIPLESQL = "/sqlfiles/createAndFillTable.sql";
 	private static final String FILENAME_MULTIPLESQL_UNDO = "/sqlfiles/createAndFillTable_undo.sql";
 	private static final String FILENAME_INVALIDSQL = "/sqlfiles/invalid.sql";
+	private static final String FILENAME_LINESPANSQL = "/sqlfiles/lineSpan.sql";
+	private static final String FILENAME_LINESPANSQL_UNDO = "/sqlfiles/lineSpan_undo.sql";
 	private static final String FILENAME_COMMENTEDSQL = "/sqlfiles/commented.sql";
 	private static final String FILENAME_COMMENTEDSQL_UNDO = "/sqlfiles/commented_undo.sql";
 
@@ -604,5 +606,15 @@ public class DatabaseLibraryTest {
 		finally { //cleanup
 			databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
 		}
+	}
+
+	@Test
+	public void singleLineSpanFromFile() throws Exception {
+		URL scriptFile = getClass().getResource(FILENAME_LINESPANSQL);
+		URL undoScriptFile = getClass().getResource(FILENAME_LINESPANSQL_UNDO);
+		
+		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
+		databaseLibrary.tableMustExist("TESTTABLE");
+		databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
 	}
 }
