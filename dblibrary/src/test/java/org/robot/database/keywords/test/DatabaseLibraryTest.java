@@ -39,6 +39,8 @@ public class DatabaseLibraryTest {
 	private static final String FILENAME_MULTIPLESQL = "/sqlfiles/createAndFillTable.sql";
 	private static final String FILENAME_MULTIPLESQL_UNDO = "/sqlfiles/createAndFillTable_undo.sql";
 	private static final String FILENAME_INVALIDSQL = "/sqlfiles/invalid.sql";
+	private static final String FILENAME_LINESPANSQL = "/sqlfiles/lineSpan.sql";
+	private static final String FILENAME_LINESPANSQL_UNDO = "/sqlfiles/lineSpan_undo.sql";
 
 	private DatabaseLibrary databaseLibrary;
 	
@@ -542,5 +544,15 @@ public class DatabaseLibraryTest {
 	public void invalidSqlFromFile() throws Exception {
 		URL scriptFile = getClass().getResource(FILENAME_INVALIDSQL);
 		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
+	}
+	
+	@Test
+	public void singleLineSpanFromFile() throws Exception {
+		URL scriptFile = getClass().getResource(FILENAME_LINESPANSQL);
+		URL undoScriptFile = getClass().getResource(FILENAME_LINESPANSQL_UNDO);
+		
+		databaseLibrary.executeSqlFromFile( scriptFile.getPath() );
+		databaseLibrary.tableMustExist("TESTTABLE");
+		databaseLibrary.executeSqlFromFile( undoScriptFile.getPath() );
 	}
 }

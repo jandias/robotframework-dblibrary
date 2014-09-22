@@ -69,6 +69,8 @@ import java.util.Map;
  */
 public class DatabaseLibrary {
 	public static final String ROBOT_LIBRARY_SCOPE = "GLOBAL";
+	
+	private static final String SQL_STATEMENT_SEPARATOR = " ";
 
 	private Connection connection = null;
 
@@ -743,6 +745,10 @@ public class DatabaseLibrary {
 					continue;
 				}
 
+				if( !isFirstLine(sql) ) {
+					sql = addSeparator(sql);
+				}
+				
 				sql += line;
 
 				if (!sql.endsWith(";")) {
@@ -765,6 +771,14 @@ public class DatabaseLibrary {
 			getConnection().setAutoCommit(true);
 			if( br!=null ) br.close();
 		}
+	}
+
+	private String addSeparator(String sql) {
+		return sql += SQL_STATEMENT_SEPARATOR;
+	}
+
+	private boolean isFirstLine(String sql) {
+		return sql == "";
 	}
 
 	/**
